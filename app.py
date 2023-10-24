@@ -11,6 +11,10 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 
-from base_app.urls import health_check_bp
+from user_authentication.urls import health_check_bp, login_bp
+
+from todo.urls import todo_bp
 
 app.register_blueprint(health_check_bp)
+app.register_blueprint(login_bp)
+app.register_blueprint(todo_bp)

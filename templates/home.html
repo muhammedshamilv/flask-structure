@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Todo List</title>
+    <style>
+      /* CSS styles for the todo list */
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        text-align: center;
+      }
+      .container {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        width: 300px;
+        margin: 0 auto;
+        padding: 20px;
+        margin-top: 20px;
+      }
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      li {
+        display: flex;
+        justify-content: space-between;
+        margin: 5px 0;
+      }
+      input[type='text'] {
+        width: 80%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+      }
+      input[type='button'] {
+        background-color: #333;
+        color: #fff;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Todo List</h2>
+      <input type="text" id="task" placeholder="Add a new task" required />
+      <input type="button" value="Add" onclick="addTodo()" />
+      <ul id="todo-list">
+        <!-- Todo items will be added here dynamically -->
+      </ul>
+    </div>
+
+    <script>
+      // Replace with your API endpoint and token
+      const apiUrl = 'https://your-api-url.com/user/userid/todo';
+      const authToken = 'YOUR_AUTH_TOKEN';
+
+      function addTodo() {
+        const taskInput = document.getElementById('task');
+        const taskText = taskInput.value.trim();
+
+        if (taskText) {
+          const todoList = document.getElementById('todo-list');
+          const listItem = document.createElement('li');
+          listItem.innerHTML = `${taskText} <button onclick="removeTodo(this)">Remove</button>`;
+          todoList.appendChild(listItem);
+          taskInput.value = '';
+
+          // Send a POST request to the API with the taskText and token
+          fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ task: taskText })
+          })
+            .then((response) => {
+              if (response.ok) {
+                console.log('Task added successfully.');
+              } else {
+                console.error('Failed to add the task.');
+              }
+            })
+            .catch((error) => {
+              console.error(
+                'An error occurred while adding the task: ' + error
+              );
+            });
+        }
+      }
+
+      function removeTodo(element) {
+        element.parentElement.remove();
+      }
+    </script>
+  </body>
+</html>

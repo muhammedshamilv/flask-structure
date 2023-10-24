@@ -11,13 +11,17 @@ class User(db.Model):
     username = db.Column(db.String(128))
     password_hash = db.Column(db.String(128))
 
+    todo = db.relationship("Todo", backref="user")
+
     def set_password(self, password):
         salt = bcrypt.gensalt()
         hashed_password = bcrypt.hashpw(password.encode("utf-8"), salt)
-        self.password_hash = hashed_password
+        self.password_hash = hashed_password.decode("utf-8")
 
     def check_password(self, password):
-        return bcrypt.checkpw(password.encode("utf-8"), self.password_hash)
+        return bcrypt.checkpw(
+            password.encode("utf-8"), self.password_hash.encode("utf-8")
+        )
 
     def __repr__(self):
         return "<User %r>" % self.id

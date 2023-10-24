@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Login</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        text-align: center;
+      }
+      .container {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        width: 300px;
+        margin: 0 auto;
+        padding: 20px;
+        margin-top: 100px;
+      }
+      input[type='text'],
+      input[type='password'] {
+        width: 80%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+      }
+      input[type='submit'] {
+        background-color: #333;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      input[type='submit']:hover {
+        background-color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Login</h2>
+      <form id="login-form">
+        <input
+          type="text"
+          name="username"
+          id="username"
+          placeholder="Username"
+          required
+        />
+        <input
+          type="password"
+          name="password"
+          id="password"
+          placeholder="Password"
+          required
+        />
+        <input type="submit" value="Login" />
+      </form>
+      <p>Don't have an account? <a href="signup">Sign Up</a></p>
+    </div>
+
+    <script>
+      document
+        .getElementById('login-form')
+        .addEventListener('submit', function (event) {
+          event.preventDefault(); // Prevent the default form submission
+
+          // Retrieve user input
+          const username = document.getElementById('username').value;
+          const password = document.getElementById('password').value;
+
+          // Define the API endpoint for user login
+          const apiUrl = 'http://127.0.0.1:8080/user/login';
+
+          // Create a data object to send to the API
+          const data = {
+            username: username,
+            password: password
+          };
+
+          // Send a POST request to the API
+          fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          }).then((response) => {
+            if (response.ok) {
+              response.json().then((data) => {
+                const authToken = data.token; // Assuming the token is in the response JSON
+                localStorage.setItem('authToken', authToken); // Store the token in local storage
+                alert('Login successful!');
+                // Redirect to the home page or perform other actions
+                window.location.href = 'http://127.0.0.1:8080/home';
+              });
+            } else {
+              alert('Login failed. Please check your credentials.');
+            }
+          });
+        });
+    </script>
+  </body>
+</html>
