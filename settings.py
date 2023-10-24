@@ -4,3 +4,4 @@ import os
 load_dotenv()
 
 database = os.getenv("DATABASE_URL")
+secret_key = os.getenv("SECRET_KEY")

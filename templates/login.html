@@ -65,22 +65,17 @@
       document
         .getElementById('login-form')
         .addEventListener('submit', function (event) {
-          event.preventDefault(); // Prevent the default form submission
-
-          // Retrieve user input
+          event.preventDefault();
           const username = document.getElementById('username').value;
           const password = document.getElementById('password').value;
 
-          // Define the API endpoint for user login
           const apiUrl = 'http://127.0.0.1:8080/user/login';
 
-          // Create a data object to send to the API
           const data = {
             username: username,
             password: password
           };
 
-          // Send a POST request to the API
           fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -90,10 +85,11 @@
           }).then((response) => {
             if (response.ok) {
               response.json().then((data) => {
-                const authToken = data.token; // Assuming the token is in the response JSON
-                localStorage.setItem('authToken', authToken); // Store the token in local storage
+                const authToken = data.token;
+                const userId = data?.user?.id;
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('userId', userId);
                 alert('Login successful!');
-                // Redirect to the home page or perform other actions
                 window.location.href = 'http://127.0.0.1:8080/home';
               });
             } else {

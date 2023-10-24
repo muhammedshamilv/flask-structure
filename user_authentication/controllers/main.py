@@ -1,9 +1,13 @@
+import datetime
 from logging import Logger
 from tokenize import generate_tokens
 from flask import current_app, render_template, views, jsonify, request
+import jwt
 
 from app import db
+from middleware.auth import auth_token
 from user_authentication.models import User
+from user_authentication.serializer import serialize_user
 
 
 class HealthCheck(views.MethodView):
@@ -30,7 +34,20 @@ def create_user():
         new_user.set_password(user_json["password"])
         db.session.add(new_user)
         db.session.commit()
-        return jsonify({"message": "user added successfully"}), 201
+        existing_user = User.query.filter_by(username=user_json["username"]).first()
+        user_data = serialize_user(existing_user)
+        token = auth_token(existing_user)
+        print("user_data", token)
+        return (
+            jsonify(
+                {
+                    "message": "Login successful",
+                    "token": token,
+                    "user": user_data,
+                }
+            ),
+            201,
+        )
 
     except Exception as e:
         Logger.error(e)
@@ -45,8 +62,18 @@ def login():
         if not existing_user or not existing_user.check_password(user_json["password"]):
             return jsonify({"message": "Invalid username/password combination"}), 403
         else:
-            # You can generate an authentication token here if needed
-            return jsonify({"message": "Login successful"}), 200
+            user_data = serialize_user(existing_user)
+            token = auth_token(existing_user)
+            return (
+                jsonify(
+                    {
+                        "message": "Login successful",
+                        "token": token,
+                        "user": user_data,
+                    }
+                ),
+                200,
+            )
     except Exception as e:
         Logger.error("An error occurred: %s" % e)
         return jsonify({"message": f"An error occurred {e}"}), 500

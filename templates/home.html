@@ -48,20 +48,24 @@
     <div class="container">
       <h2>Todo List</h2>
       <input type="text" id="task" placeholder="Add a new task" required />
+      <input type="text" id="desc" placeholder="Description" required />
+
       <input type="button" value="Add" onclick="addTodo()" />
-      <ul id="todo-list">
-        <!-- Todo items will be added here dynamically -->
-      </ul>
+      <ul id="todo-list"></ul>
     </div>
 
     <script>
-      // Replace with your API endpoint and token
-      const apiUrl = 'https://your-api-url.com/user/userid/todo';
-      const authToken = 'YOUR_AUTH_TOKEN';
+      const userId = localStorage.getItem('userId');
+      console.log('userId', userId);
+      const apiUrl = `http://127.0.0.1:8080/user/${userId}/todo`;
+      const authToken = localStorage.getItem('authToken');
 
       function addTodo() {
         const taskInput = document.getElementById('task');
+        const taskDesc = document.getElementById('desc');
+
         const taskText = taskInput.value.trim();
+        const desc = taskDesc.value.trim();
 
         if (taskText) {
           const todoList = document.getElementById('todo-list');
@@ -69,15 +73,15 @@
           listItem.innerHTML = `${taskText} <button onclick="removeTodo(this)">Remove</button>`;
           todoList.appendChild(listItem);
           taskInput.value = '';
+          taskDesc.value = '';
 
-          // Send a POST request to the API with the taskText and token
           fetch(apiUrl, {
             method: 'POST',
             headers: {
               Authorization: `Bearer ${authToken}`,
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ task: taskText })
+            body: JSON.stringify({ task: taskText, description: desc })
           })
             .then((response) => {
               if (response.ok) {
