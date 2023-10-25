@@ -89,7 +89,6 @@
                 const userId = data?.user?.id;
                 localStorage.setItem('authToken', authToken);
                 localStorage.setItem('userId', userId);
-                alert('Login successful!');
                 window.location.href = 'http://127.0.0.1:8080/home';
               });
             } else {

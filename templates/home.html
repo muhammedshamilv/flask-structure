@@ -42,6 +42,50 @@
         border-radius: 3px;
         cursor: pointer;
       }
+      .todo-card {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin: 10px;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+      }
+      /* Style for the edit modal */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        padding-top: 100px;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+
+      .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 50%;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+      }
+
+      .close {
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .close:hover {
+        color: red;
+      }
+
+      /* Add additional styling as needed */
     </style>
   </head>
   <body>
@@ -49,32 +93,46 @@
       <h2>Todo List</h2>
       <input type="text" id="task" placeholder="Add a new task" required />
       <input type="text" id="desc" placeholder="Description" required />
-
       <input type="button" value="Add" onclick="addTodo()" />
-      <ul id="todo-list"></ul>
+    </div>
+    <div id="todo-cards"></div>
+    <!-- The modal div for editing todos -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h2>Edit Todo</h2>
+        <form id="editTodoForm">
+          <div
+            style="display: flex; align-items: center; flex-direction: column"
+          >
+            <div>
+              <input type="text" id="editTask" placeholder="Edit task" />
+              <input
+                type="text"
+                id="editDescription"
+                placeholder="Edit description"
+              />
+            </div>
+            <div>
+              <button type="button" onclick="updateTodo()">Update</button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
 
     <script>
       const userId = localStorage.getItem('userId');
-      console.log('userId', userId);
-      const apiUrl = `http://127.0.0.1:8080/user/${userId}/todo`;
       const authToken = localStorage.getItem('authToken');
+      const apiUrl = `http://127.0.0.1:8080/user/${userId}/todo`;
 
       function addTodo() {
         const taskInput = document.getElementById('task');
         const taskDesc = document.getElementById('desc');
-
         const taskText = taskInput.value.trim();
         const desc = taskDesc.value.trim();
 
         if (taskText) {
-          const todoList = document.getElementById('todo-list');
-          const listItem = document.createElement('li');
-          listItem.innerHTML = `${taskText} <button onclick="removeTodo(this)">Remove</button>`;
-          todoList.appendChild(listItem);
-          taskInput.value = '';
-          taskDesc.value = '';
-
           fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -85,7 +143,7 @@
           })
             .then((response) => {
               if (response.ok) {
-                console.log('Task added successfully.');
+                fetchTodo();
               } else {
                 console.error('Failed to add the task.');
               }
@@ -101,6 +159,144 @@
       function removeTodo(element) {
         element.parentElement.remove();
       }
+
+      const apiUrlTodo = `http://127.0.0.1:8080/user/list/todo`;
+
+      function createTodoCard(taskText, description, todoId) {
+        const todoCards = document.getElementById('todo-cards');
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'todo-card';
+        cardDiv.id = `todo-card-${todoId}`;
+        cardDiv.innerHTML = `
+        <div>
+            <h3 id="taskText-${todoId}">${taskText}</h3>
+            <p id="descriptionText-${todoId}">${description}</p>
+        </div>
+        <div>
+            <button onclick="openEditModal(${todoId}, '${taskText}', '${description}')">Edit</button>
+        
+            <button onclick="deleteTodo(${todoId})">Delete</button>
+        </div>
+        `;
+        todoCards.appendChild(cardDiv);
+      }
+      // <div id="editForm-${todoId}" style="display: none;">
+      //     <input type="text" id="editTask-${todoId}" placeholder="Edit task" />
+      //     <input type="text" id="editDescription-${todoId}" placeholder="Edit description" />
+      //     <button onclick="updateTodo(${todoId})">Update</button>
+      // </div>
+
+      // Function to open the edit modal and populate it with data
+      function openEditModal(todoId, taskText, descriptionText) {
+        const editTaskInput = document.getElementById('editTask');
+        const editDescriptionInput = document.getElementById('editDescription');
+
+        // Populate the edit form with existing data
+        editTaskInput.value = taskText;
+        editDescriptionInput.value = descriptionText;
+
+        const editModal = document.getElementById('editModal');
+        editModal.style.display = 'block';
+
+        // Add a custom attribute to the form to store the todo ID
+        const editTodoForm = document.getElementById('editTodoForm');
+        editTodoForm.setAttribute('data-todo-id', todoId);
+      }
+
+      // Function to close the edit modal
+      function closeEditModal() {
+        const editModal = document.getElementById('editModal');
+        editModal.style.display = 'none';
+      }
+
+      // Function to update the todo
+      function updateTodo() {
+        const editTaskInput = document.getElementById('editTask');
+        const editDescriptionInput = document.getElementById('editDescription');
+        const todoId = document
+          .getElementById('editTodoForm')
+          .getAttribute('data-todo-id');
+
+        const updatedTask = editTaskInput.value;
+        const updatedDescription = editDescriptionInput.value;
+
+        const updatedData = {
+          task: updatedTask,
+          description: updatedDescription
+        };
+        fetch(`http://127.0.0.1:8080/user/todo/${todoId}`, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updatedData)
+        })
+          .then((response) => {
+            if (response.ok) {
+              // Close the edit modal
+              fetchTodo();
+              closeEditModal();
+              // Update the UI with the new data (if necessary)
+            } else {
+              console.error('Failed to update the todo.');
+            }
+          })
+          .catch((error) => {
+            console.error(
+              'An error occurred while updating the todo: ' + error
+            );
+          });
+      }
+
+      function deleteTodo(todoId) {
+        fetch(`http://127.0.0.1:8080/user/todo/${todoId}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${authToken}`
+          }
+        })
+          .then((response) => {
+            if (response.ok) {
+              const todoCard = document.getElementById(`todo-card-${todoId}`);
+              if (todoCard) {
+                todoCard.remove();
+              }
+            } else {
+              console.error('Failed to delete the todo.');
+            }
+          })
+          .catch((error) => {
+            console.error(
+              'An error occurred while deleting the todo: ' + error
+            );
+          });
+      }
+
+      function fetchTodo() {
+        fetch(apiUrlTodo, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${authToken}`
+          }
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data && Array.isArray(data.todo)) {
+              const todo = data.todo;
+              const todoCards = document.getElementById('todo-cards');
+              todoCards.innerHTML = '';
+              todo.forEach((todo) => {
+                createTodoCard(todo.title, todo.description, todo.id);
+              });
+            }
+          })
+          .catch((error) => {
+            console.error('An error occurred while fetching todos: ' + error);
+          });
+      }
+
+      window.onload = fetchTodo;
     </script>
   </body>
 </html>
