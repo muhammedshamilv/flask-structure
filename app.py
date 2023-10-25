@@ -19,9 +19,8 @@ app.register_blueprint(health_check_bp)
 app.register_blueprint(login_bp)
 app.register_blueprint(todo_bp)
 
-# docker
+
 # admin
-# Nginx
 # logs
 # newrelic
 # swagger
