@@ -5,3 +5,5 @@ load_dotenv()
 
 database = os.getenv("DATABASE_URL")
 secret_key = os.getenv("SECRET_KEY")
+username = os.getenv("USERNAME")
+password = os.getenv("PASSWORD")
